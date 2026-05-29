@@ -1,0 +1,58 @@
+{
+  "problem": {
+    "title": "Document Consumption Problem",
+    "content": "Current document formats such as Markdown, PDF, JSON, YAML and HTML are designed for humans who read linearly. AI agents must often load entire documents into their context window even when only a small portion is relevant. This leads to token inflation, context compounding across multiple interactions, and role blindness where all agents receive the same information regardless of their responsibilities."
+  },
+
+  "solution": {
+    "title": "ObjectGraph (.og)",
+    "content": "ObjectGraph introduces a document format that represents documents as a typed knowledge graph instead of a long text file. Documents are divided into semantic nodes connected through typed relationships. Agents first read a lightweight index, identify relevant nodes, retrieve only those nodes and their dependencies, and ignore unrelated content."
+  },
+
+  "key_features": {
+    "title": "Core Features of ObjectGraph",
+    "content": [
+      "Query-addressable index",
+      "Progressive Disclosure Model",
+      "Typed dependency graph",
+      "Role-scoped access control",
+      "Executable assertion nodes",
+      "Delta loading",
+      "Backward compatibility with Markdown"
+    ]
+  },
+
+  "architecture": {
+    "title": "ObjectGraph Architecture",
+    "content": {
+      "step_1": "Read metadata and index",
+      "step_2": "Find relevant nodes",
+      "step_3": "Read dense summaries",
+      "step_4": "Read full node if required",
+      "step_5": "Resolve dependencies",
+      "step_6": "Execute assertions"
+    }
+  },
+
+  "results": {
+    "title": "Experimental Results",
+    "content": {
+      "average_token_reduction": "92%",
+      "maximum_token_reduction": "95.3%",
+      "workflow_reduction": "36.5x fewer tokens",
+      "accuracy": "Comparable to Markdown",
+      "transpiler_fidelity": "98.7%"
+    }
+  },
+
+  "limitations": {
+    "title": "Limitations",
+    "content": [
+      "Limited benchmark evaluation",
+      "No cross-file edge resolution",
+      "No standardization body",
+      "Potential dialect fragmentation",
+      "No adversarial testing"
+    ]
+  }
+}
