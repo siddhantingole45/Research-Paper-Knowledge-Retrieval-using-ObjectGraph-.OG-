@@ -1,7 +1,12 @@
 import streamlit as st
 import os
+import json
 from parser import extract_text
 from og_generator import generate_nodes
+from graph_visualizer import (
+    create_graph,
+    draw_graph
+)
 
 UPLOAD_FOLDER = "uploads"
 
@@ -50,15 +55,36 @@ if uploaded_file is not None:
     paper_text = extract_text(file_path)
     nodes = generate_nodes(paper_text)
 
+    # ====================================
+    # Save Generated ObjectGraph File
+    # ====================================
+
+    os.makedirs("generated_og", exist_ok=True)
+
+    og_file = os.path.join(
+        "generated_og",
+        uploaded_file.name.replace(".pdf", ".json")
+    )
+
+    with open(
+        og_file,
+        "w",
+        encoding="utf-8"
+    ) as f:
+
+        json.dump(
+            nodes,
+            f,
+            indent=4
+        )
+
+    st.success(
+        f"ObjectGraph file generated: {og_file}"
+    )
+
     st.divider()
 
     st.subheader("Extracted Text Preview")
-
-    st.text_area(
-        "First 3000 Characters",
-        paper_text[:3000],
-        height=300
-    )
 
 # ---------------------------------
 # Generated Nodes
@@ -132,3 +158,13 @@ if uploaded_file is not None:
             "Savings %",
             f"{savings:.2f}%"
         )
+
+        st.divider()
+
+        st.subheader("ObjectGraph Visualization")
+
+        graph = create_graph(nodes)
+
+        fig = draw_graph(graph)
+
+        st.pyplot(fig)
