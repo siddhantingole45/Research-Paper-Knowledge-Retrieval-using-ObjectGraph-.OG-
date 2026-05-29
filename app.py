@@ -1,66 +1,134 @@
 import streamlit as st
+import os
+from parser import extract_text
+from og_generator import generate_nodes
 
-from query_engine import (
-    get_all_nodes,
-    get_node,
-    calculate_token_savings
-)
+UPLOAD_FOLDER = "uploads"
+
+os.makedirs(UPLOAD_FOLDER, exist_ok=True)
 
 st.set_page_config(
-    page_title="Research Paper ObjectGraph Demo",
+    page_title="Research Paper Knowledge Retrieval using ObjectGraph (.OG)",
     layout="wide"
 )
 
 st.title("Research Paper Knowledge Retrieval using ObjectGraph (.OG)")
 
-st.markdown(
-    """
-    Demonstration of the ObjectGraph concept proposed in the paper.
-    
-    Instead of loading the entire paper,
-    retrieve only the required knowledge node.
-    """
+st.write(
+    "Upload a research paper PDF and convert it into ObjectGraph-style knowledge nodes."
 )
 
 st.divider()
 
-nodes = get_all_nodes()
+# PDF Upload Section
 
-selected_node = st.selectbox(
-    "Select Knowledge Node",
-    nodes
+uploaded_file = st.file_uploader(
+    "Upload Research Paper PDF",
+    type=["pdf"]
 )
 
-if st.button("Retrieve Node"):
+if uploaded_file is not None:
 
-    node_data = get_node(selected_node)
+    file_path = os.path.join(
+        UPLOAD_FOLDER,
+        uploaded_file.name
+    )
 
-    st.subheader("Retrieved Node")
+    with open(file_path, "wb") as f:
+        f.write(uploaded_file.getbuffer())
 
-    st.json(node_data)
+    st.success(
+        f"PDF Uploaded Successfully: {uploaded_file.name}"
+    )
 
-    stats = calculate_token_savings(selected_node)
+    st.code(file_path)
+
+    # --------------------
+    # Extract Text
+    # --------------------
+
+    paper_text = extract_text(file_path)
+    nodes = generate_nodes(paper_text)
 
     st.divider()
 
-    st.subheader("Token Savings Comparison")
+    st.subheader("Extracted Text Preview")
 
-    col1, col2, col3 = st.columns(3)
+    st.text_area(
+        "First 3000 Characters",
+        paper_text[:3000],
+        height=300
+    )
 
-    with col1:
-        st.metric(
+# ---------------------------------
+# Generated Nodes
+# ---------------------------------
+
+    st.divider()
+
+    st.subheader("Generated Knowledge Nodes")
+
+    st.json(list(nodes.keys()))
+
+# ---------------------------------
+# Nodes Retrieval
+# ---------------------------------
+
+    st.divider()
+
+    st.subheader("Retrieve Specific Node")
+
+    selected_node = st.selectbox(
+        "Select a Node",
+        list(nodes.keys())
+    )
+
+    if st.button("Retrieve Node"):
+
+        st.subheader(f"Node: {selected_node}")
+
+        st.text_area(
+            "Node Content",
+            nodes[selected_node][:3000],
+            height=300
+        )
+
+        # ==========================
+        # Token Calculation
+        # ==========================
+
+        full_tokens = len(paper_text.split())
+
+        node_tokens = len(
+            nodes[selected_node].split()
+        )
+
+        savings = (
+            (full_tokens - node_tokens)
+            / full_tokens
+        ) * 100
+
+        # ==========================
+        # Display Token Savings
+        # ==========================
+
+        st.divider()
+
+        st.subheader("Token Savings Comparison")
+
+        col1, col2, col3 = st.columns(3)
+
+        col1.metric(
             "Full Paper Tokens",
-            stats["full_document_tokens"]
+            full_tokens
         )
 
-    with col2:
-        st.metric(
+        col2.metric(
             "Retrieved Node Tokens",
-            stats["retrieved_tokens"]
+            node_tokens
         )
 
-    with col3:
-        st.metric(
+        col3.metric(
             "Savings %",
-            f"{stats['savings_percentage']}%"
+            f"{savings:.2f}%"
         )
